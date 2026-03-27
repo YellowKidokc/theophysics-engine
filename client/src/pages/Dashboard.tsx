@@ -45,6 +45,122 @@ import {
   YAxis,
 } from "recharts";
 
+// Type guide data from the 14 canonical Type files
+const TYPE_GUIDE: Record<string, { name: string; role: string; description: string; example: string; exampleId: string }> = {
+  "01_Axioms": {
+    name: "Axiom",
+    role: "Foundation",
+    description: "A self-evident truth accepted without proof. Axioms are the bedrock of the entire system — every theorem, corollary, and prediction traces back to these. They cannot be derived from anything simpler within the framework.",
+    example: "A1.1 — Reality Exists: Something exists rather than nothing. This is the irreducible starting point that no rational system can deny without self-contradiction.",
+    exampleId: "A1.1",
+  },
+  "02_Definitions": {
+    name: "Definition",
+    role: "Formal Language",
+    description: "A precise specification of what a term means within Theophysics. Definitions fix vocabulary so that every axiom, theorem, and equation uses words with exact, shared meaning — eliminating ambiguity before argument begins.",
+    example: "D2.1 — The chi-Field: The self-grounding informational substrate that satisfies axioms A2.1 and A2.2. Not a metaphor — a formally defined entity with specific mathematical properties.",
+    exampleId: "D2.1",
+  },
+  "03_Lemmas": {
+    name: "Lemma",
+    role: "Stepping Stone",
+    description: "A proven intermediate result used to build toward a larger theorem. Lemmas handle the heavy technical lifting so that the main theorems can be stated cleanly. They are fully proven, not assumed.",
+    example: "LN3.1 — Coherence Monotonicity: Under specified conditions, the coherence function C is monotonically non-decreasing. This lemma feeds directly into the proof of the Coherence Theorem.",
+    exampleId: "LN3.1",
+  },
+  "04_Equations": {
+    name: "Equation",
+    role: "Quantitative Law",
+    description: "A mathematical relationship that makes the framework computable. Equations translate conceptual claims into formulas that can be tested, simulated, and falsified. They are where Theophysics meets measurement.",
+    example: "E1.1 — The Master Equation: chi = G * M * E * (1/(1+S)) * T * K * R * Q * F * C. The single equation that encodes all ten laws into one computable expression.",
+    exampleId: "E1.1",
+  },
+  "05_Propositions": {
+    name: "Proposition",
+    role: "Derived Claim",
+    description: "A statement that follows logically from axioms and definitions but has not yet risen to the status of a full theorem. Propositions are claims the system makes — each one traceable to its logical parents.",
+    example: "P1.1 — Information Requires Substrate: Any information-bearing system requires a physical or formal substrate. Derived from A1.3 (Information is Fundamental) and A2.1 (Substrate Requirement).",
+    exampleId: "P1.1",
+  },
+  "06_Theorems": {
+    name: "Theorem",
+    role: "Major Result",
+    description: "A rigorously proven statement that constitutes a major claim of the framework. Theorems are the payoff — they tell you what the axioms actually imply when you follow the logic all the way through.",
+    example: "T3.1 — The Coherence Theorem: In any system satisfying the ten laws, coherence C converges to a fixed point under grace injection. This is the central structural result of Theophysics.",
+    exampleId: "T3.1",
+  },
+  "07_Bridge": {
+    name: "Bridge (Identification)",
+    role: "Cross-Domain Link",
+    description: "A formal identification between a physics concept and a theological concept. Bridges are the most distinctive feature of Theophysics — they claim that two things from different domains are structurally the same thing, not merely analogous.",
+    example: "ID1.1 — Gravity-Grace Identification: The mathematical structure of gravitational attraction IS the mathematical structure of grace. Same equations, same topology, different domain.",
+    exampleId: "ID1.1",
+  },
+  "08_Corollaries": {
+    name: "Corollary",
+    role: "Direct Consequence",
+    description: "A result that follows immediately from a theorem with little or no additional proof. Corollaries are the low-hanging fruit that a theorem hands you — once the theorem is proven, the corollary is nearly automatic.",
+    example: "C3.1 — Grace Necessity: If coherence requires a fixed point (Theorem T3.1), then an open-system grace source is necessary for any finite agent to reach it.",
+    exampleId: "C3.1",
+  },
+  "09_Ontological": {
+    name: "Ontological Axiom",
+    role: "Existence Claim",
+    description: "An axiom that asserts something about what exists or must exist. Ontological axioms go beyond logical structure to make claims about the furniture of reality — what the universe actually contains.",
+    example: "O1.1 — Consciousness Exists: Subjective experience is a real feature of reality, not an illusion or epiphenomenon. This cannot be derived — it must be accepted or denied.",
+    exampleId: "O1.1",
+  },
+  "10_Boundary": {
+    name: "Boundary Condition",
+    role: "Limit & Constraint",
+    description: "A condition that specifies what happens at the edges of the system — at t=0, at infinity, at maximum entropy, at perfect coherence. Boundary conditions prevent the equations from producing nonsense at extremes.",
+    example: "B1.1 — Initial Coherence: At t=0, C(0) > 0. The universe begins with nonzero coherence. Without this boundary condition, the Master Equation has no well-defined starting point.",
+    exampleId: "B1.1",
+  },
+  "11_Evidence": {
+    name: "Evidence",
+    role: "Empirical Anchor",
+    description: "A documented empirical result from published research that supports or constrains the framework. Evidence nodes connect Theophysics to the real world — they are what separates this from pure philosophy.",
+    example: "EV1.1 — PEAR Lab Results: 6-sigma deviation in random event generators correlated with conscious intent (Princeton, 1979-2007). Direct empirical support for consciousness-quantum coupling.",
+    exampleId: "EV1.1",
+  },
+  "12_Experiments": {
+    name: "Experiment",
+    role: "Proposed Test",
+    description: "A specific experimental protocol designed to test a prediction of the framework. Experiments are how Theophysics puts itself at risk — each one is a chance for the framework to be falsified.",
+    example: "EXP1.1 — Dorothy Protocol: Double-blind RNG experiment testing whether conscious intent biases quantum collapse. 6-sigma threshold, pre-registered, publish-null commitment.",
+    exampleId: "EXP1.1",
+  },
+  "13_Predictions": {
+    name: "Prediction",
+    role: "Testable Forecast",
+    description: "A specific, falsifiable claim about what future observations will show. Predictions are the currency of science — a framework that makes no predictions is unfalsifiable and therefore unscientific.",
+    example: "PRED1.1 — Euclid f-sigma-8: The chi-field predicts a specific growth rate suppression measurable by the Euclid satellite (October 2026). If the data disagrees, the framework is wounded.",
+    exampleId: "PRED1.1",
+  },
+  "14_Protocols": {
+    name: "Protocol",
+    role: "Methodology",
+    description: "A step-by-step procedure for conducting an experiment or validation. Protocols ensure reproducibility — anyone, anywhere, can run the same test and get the same answer.",
+    example: "PROT1.1 — Pre-Registration Protocol: All Theophysics experiments must be pre-registered with hypotheses, methods, and analysis plans locked before data collection begins.",
+    exampleId: "PROT1.1",
+  },
+  "15_Falsification": {
+    name: "Falsification Criterion",
+    role: "Kill Condition",
+    description: "A specific condition that, if observed, would destroy part or all of the framework. Falsification criteria are the most honest thing a theory can publish — they tell the world exactly how to kill it.",
+    example: "FALS1.1 — Coherence Violation: If a system satisfying all ten laws is found where coherence provably decreases under grace injection, the Coherence Theorem is false and the framework collapses.",
+    exampleId: "FALS1.1",
+  },
+  "16_Open": {
+    name: "Open Question",
+    role: "Known Gap",
+    description: "A question the framework cannot currently answer. Open questions are intellectual honesty made structural — they mark exactly where the frontier is and what work remains to be done.",
+    example: "OPEN1.1 — Kappa Derivation: The coupling constant kappa is estimated but not derived from first principles. Until it is, the framework has a free parameter it cannot justify.",
+    exampleId: "OPEN1.1",
+  },
+};
+
 const GRAPH_DATA = [
   { time: '00:00', chi: 0.4, delta: 0.2, grace: 0.1 },
   { time: '04:00', chi: 0.6, delta: 0.3, grace: 0.4 },
@@ -75,6 +191,20 @@ export default function Dashboard() {
   const { data: categoriesData = [] } = useQuery({
     queryKey: ["/api/categories"],
     queryFn: () => fetch("/api/categories").then(r => r.json()),
+  });
+
+  // Always fetch all axioms for sidebar counts
+  const { data: allAxioms = [] } = useQuery({
+    queryKey: ["/api/axioms"],
+    queryFn: () => fetch("/api/axioms").then(r => r.json()),
+  });
+
+  // Compute counts per category slug
+  const categoryCounts: Record<string, number> = {};
+  allAxioms.forEach((ax: any) => {
+    if (ax.categorySlug) {
+      categoryCounts[ax.categorySlug] = (categoryCounts[ax.categorySlug] || 0) + 1;
+    }
   });
 
   const { data: axiomsList = [] } = useQuery({
@@ -136,6 +266,9 @@ export default function Dashboard() {
                 data-testid={`btn-category-${cat.slug}`}
               >
                 <span className="truncate">{cat.label}</span>
+                {categoryCounts[cat.slug] > 0 && (
+                  <span className="opacity-50 font-mono text-[8px] tabular-nums">{categoryCounts[cat.slug]}</span>
+                )}
               </button>
             ))}
           </div>
@@ -168,6 +301,21 @@ export default function Dashboard() {
         
         <ScrollArea className="flex-1 px-4 py-4">
           <div className="space-y-1">
+            {/* Type Guide intro card */}
+            {selectedCategory && TYPE_GUIDE[selectedCategory] && (
+              <div className="mb-4 p-4 rounded-xl border border-blue-500/15 bg-blue-500/5">
+                <div className="flex items-center gap-2 mb-2">
+                  <BookOpen className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.15em]">{TYPE_GUIDE[selectedCategory].name}</span>
+                  <span className="text-[8px] text-slate-600 uppercase tracking-widest ml-auto">{TYPE_GUIDE[selectedCategory].role}</span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed mb-3">{TYPE_GUIDE[selectedCategory].description}</p>
+                <div className="p-3 rounded-lg bg-[#010409] border border-slate-800/60">
+                  <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-1">Example</p>
+                  <p className="text-[10px] text-slate-500 leading-relaxed italic">{TYPE_GUIDE[selectedCategory].example}</p>
+                </div>
+              </div>
+            )}
             {axiomsList.map((axiom: any) => (
               <button 
                 key={axiom.id}
