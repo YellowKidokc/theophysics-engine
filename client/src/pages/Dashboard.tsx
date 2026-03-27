@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  Activity, 
-  ChevronRight, 
-  Database, 
-  FileText, 
-  MessageSquare, 
-  Search, 
-  Settings, 
+import {
+  Activity,
+  ChevronRight,
+  Database,
+  FileText,
+  MessageSquare,
+  Search,
+  Settings,
   Zap,
   Globe,
   Link2,
@@ -24,7 +24,10 @@ import {
   Lightbulb,
   AlertTriangle,
   BookOpen,
-  ArrowRight
+  ArrowRight,
+  PanelLeftOpen,
+  PanelRightOpen,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -184,9 +187,30 @@ function StatusDot({ status }: { status: string }) {
   return <div className="w-1.5 h-1.5 rounded-full bg-slate-700" />;
 }
 
+function useIsMobile(breakpoint = 1024) {
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < breakpoint : false);
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    setIsMobile(mql.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [activeAxiomId, setActiveAxiomId] = useState("A1.2");
+  const [leftOpen, setLeftOpen] = useState(false);
+  const [rightOpen, setRightOpen] = useState(false);
+  const isMobile = useIsMobile();
+
+  // Close panels when selecting an axiom on mobile
+  const handleAxiomSelect = useCallback((nodeId: string) => {
+    setActiveAxiomId(nodeId);
+    if (isMobile) setLeftOpen(false);
+  }, [isMobile]);
 
   const { data: categoriesData = [] } = useQuery({
     queryKey: ["/api/categories"],
@@ -229,10 +253,39 @@ export default function Dashboard() {
   const notClaiming = activeAxiom?.notClaiming || [];
 
   return (
-    <div className="flex h-screen bg-[#010409] text-slate-200 font-sans overflow-hidden">
-      
+    <div className="flex h-screen bg-[#010409] text-slate-200 font-sans overflow-hidden relative">
+
+      {/* Mobile backdrop - left */}
+      {isMobile && leftOpen && (
+        <div className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm" onClick={() => setLeftOpen(false)} />
+      )}
+      {/* Mobile backdrop - right */}
+      {isMobile && rightOpen && (
+        <div className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm" onClick={() => setRightOpen(false)} />
+      )}
+
+      {/* Mobile toggle buttons - fixed at bottom corners, thumb-friendly */}
+      {isMobile && !leftOpen && !rightOpen && (
+        <>
+          <button
+            onClick={() => setLeftOpen(true)}
+            className="fixed bottom-6 left-4 z-50 w-14 h-14 rounded-full bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center justify-center active:scale-95 transition-transform"
+            aria-label="Open axiom index"
+          >
+            <PanelLeftOpen className="w-6 h-6 text-white" />
+          </button>
+          <button
+            onClick={() => setRightOpen(true)}
+            className="fixed bottom-6 right-4 z-50 w-14 h-14 rounded-full bg-slate-700 shadow-[0_0_20px_rgba(0,0,0,0.4)] flex items-center justify-center active:scale-95 transition-transform"
+            aria-label="Open metadata panel"
+          >
+            <PanelRightOpen className="w-6 h-6 text-white" />
+          </button>
+        </>
+      )}
+
       {/* Categories Nav */}
-      <aside data-testid="sidebar-categories" className="w-64 border-r border-slate-800/40 flex flex-col bg-[#010409]">
+      <aside data-testid="sidebar-categories" className={`${isMobile ? 'hidden' : ''} w-64 border-r border-slate-800/40 flex flex-col bg-[#010409]`}>
         <div className="p-6 border-b border-slate-800/40 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.3)]">
             <BrainCircuit className="text-white w-5 h-5" />
@@ -282,8 +335,20 @@ export default function Dashboard() {
         </div>
       </aside>
 
+      {/* Mobile close button for left panel - positioned inside the panel area */}
+      {isMobile && leftOpen && (
+        <button
+          onClick={() => setLeftOpen(false)}
+          className="fixed top-3 z-[60] w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shadow-lg"
+          style={{ left: 'min(85vw - 3rem, calc(24rem - 3rem))' }}
+          aria-label="Close panel"
+        >
+          <X className="w-5 h-5 text-white" />
+        </button>
+      )}
+
       {/* Axiom List */}
-      <aside data-testid="sidebar-axioms" className="w-72 border-r border-slate-800/40 flex flex-col bg-[#010409]/80 backdrop-blur-xl">
+      <aside data-testid="sidebar-axioms" className={`${isMobile ? `fixed top-0 left-0 h-full z-50 transition-transform duration-300 ease-out ${leftOpen ? 'translate-x-0' : '-translate-x-full'} w-[85vw] max-w-sm` : 'w-72'} border-r border-slate-800/40 flex flex-col bg-[#010409] backdrop-blur-xl`}>
         <div className="p-6 border-b border-slate-800/40">
           <div className="flex justify-between items-center mb-4">
              <h2 className="text-sm font-bold tracking-widest text-slate-400 uppercase">Axiom Spine</h2>
@@ -319,7 +384,7 @@ export default function Dashboard() {
             {axiomsList.map((axiom: any) => (
               <button 
                 key={axiom.id}
-                onClick={() => setActiveAxiomId(axiom.nodeId)}
+                onClick={() => handleAxiomSelect(axiom.nodeId)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs rounded-lg transition-all group border ${
                   activeAxiomId === axiom.nodeId 
                   ? 'bg-blue-500/5 text-blue-400 border-blue-500/20 shadow-[inset_0_0_15px_rgba(59,130,246,0.05)]' 
@@ -688,8 +753,19 @@ export default function Dashboard() {
         </ScrollArea>
       </main>
 
+      {/* Mobile close button for right panel */}
+      {isMobile && rightOpen && (
+        <button
+          onClick={() => setRightOpen(false)}
+          className="fixed top-4 left-4 z-[60] w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center"
+          aria-label="Close panel"
+        >
+          <X className="w-5 h-5 text-white" />
+        </button>
+      )}
+
       {/* Right Sidebar */}
-      <aside className="w-80 border-l border-slate-800/40 bg-[#010409]/80 backdrop-blur-xl hidden xl:flex flex-col">
+      <aside className={`${isMobile ? `fixed top-0 right-0 h-full z-50 transition-transform duration-300 ease-out ${rightOpen ? 'translate-x-0' : 'translate-x-full'} w-[85vw] max-w-sm flex` : 'hidden xl:flex w-80'} border-l border-slate-800/40 bg-[#010409] backdrop-blur-xl flex-col`}>
         <ScrollArea className="flex-1 p-8">
           {activeAxiom && (
           <div className="space-y-12">
