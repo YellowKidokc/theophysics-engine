@@ -231,6 +231,14 @@ export default function Dashboard() {
     }
   });
 
+  // Compute counts per object type (Axiom, Definition, Lemma, etc.)
+  const objectTypeCounts: Record<string, number> = {};
+  allAxioms.forEach((ax: any) => {
+    const t = ax.objectType || "Unknown";
+    objectTypeCounts[t] = (objectTypeCounts[t] || 0) + 1;
+  });
+  const totalAxiomCount = allAxioms.length;
+
   const { data: axiomsList = [] } = useQuery({
     queryKey: ["/api/axioms", selectedCategory],
     queryFn: () => {
@@ -290,30 +298,53 @@ export default function Dashboard() {
           <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.3)]">
             <BrainCircuit className="text-white w-5 h-5" />
           </div>
-          <span className="font-black tracking-tighter text-lg uppercase italic">Categories</span>
+          <span className="font-black tracking-tighter text-lg uppercase italic">Master Index</span>
         </div>
-        
+
         <ScrollArea className="flex-1 px-4 py-4">
           <div className="space-y-1">
-            <button 
+            {/* Object Type counts - always visible */}
+            <div className="mb-4 pb-4 border-b border-slate-800/40">
+              <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-3 px-3">By Type</p>
+              {["Axiom", "Definition", "Lemma", "Equation", "Proposition", "Theorem", "Bridge", "Corollary", "Ontological", "Boundary"].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setSelectedCategory(null)}
+                  className="w-full flex items-center justify-between px-3 py-2 text-[10px] rounded-lg transition-all font-bold tracking-widest uppercase text-amber-500/80 hover:text-amber-400 hover:bg-slate-900 border border-transparent"
+                >
+                  <span>{type}</span>
+                  <span className="font-mono text-[10px] text-slate-500 tabular-nums bg-slate-800/60 rounded px-1.5 py-0.5 min-w-[28px] text-center">
+                    {objectTypeCounts[type] || 0}
+                  </span>
+                </button>
+              ))}
+              <div className="mt-2 px-3 pt-2 border-t border-slate-800/30 flex justify-between text-[9px] text-slate-600">
+                <span className="uppercase tracking-widest font-bold">Total</span>
+                <span className="font-mono tabular-nums">{totalAxiomCount}</span>
+              </div>
+            </div>
+
+            {/* Category filter */}
+            <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-2 px-3">By Domain</p>
+            <button
               onClick={() => setSelectedCategory(null)}
               className={`w-full flex items-center justify-between px-3 py-2 text-[10px] rounded-lg transition-all font-bold tracking-widest uppercase border ${
-                selectedCategory === null 
-                ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' 
+                selectedCategory === null
+                ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                 : 'text-slate-600 hover:text-slate-400 hover:bg-slate-900 border-transparent'
               }`}
               data-testid="btn-category-all"
             >
-              <span>All Axioms</span>
+              <span>All</span>
               <span className="opacity-40 font-mono text-[8px]">{axiomsList.length}</span>
             </button>
             {categoriesData.map((cat: any) => (
-              <button 
+              <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.slug)}
                 className={`w-full flex items-center justify-between px-3 py-2 text-[10px] rounded-lg transition-all font-bold tracking-widest uppercase border ${
-                  selectedCategory === cat.slug 
-                  ? 'bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.05)]' 
+                  selectedCategory === cat.slug
+                  ? 'bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.05)]'
                   : 'text-slate-600 hover:text-slate-400 hover:bg-slate-900 border-transparent'
                 }`}
                 data-testid={`btn-category-${cat.slug}`}
@@ -697,6 +728,128 @@ export default function Dashboard() {
 
             </Accordion>
 
+            {/* 7Q Truth Score — always visible */}
+            {activeAxiom.avg7qScore && (
+            <section className="space-y-6 pt-8 border-t border-violet-500/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center border border-violet-500/20">
+                    <Activity className="w-4 h-4 text-violet-400" />
+                  </div>
+                  <span className="text-sm font-bold tracking-widest text-slate-300 uppercase">7Q Truth Score</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl font-mono font-black text-violet-400">{activeAxiom.avg7qScore}</span>
+                  <span className="text-xs text-slate-600">/1.000</span>
+                  <Badge className={`text-[8px] ${
+                    activeAxiom.isoStatus === 'ISO-CONFIRMED'
+                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                      : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                  }`}>
+                    {activeAxiom.isoStatus}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Score Grid */}
+              <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                {[
+                  { q: 'Q0', label: 'Posture', val: activeAxiom.q0Posture },
+                  { q: 'Q1', label: 'Identity', val: activeAxiom.q1Identity },
+                  { q: 'Q2', label: 'Domain', val: activeAxiom.q2Domain },
+                  { q: 'Q3', label: 'Assertion', val: activeAxiom.q3Assertion },
+                  { q: 'Q4', label: 'Evidence', val: activeAxiom.q4Evidence },
+                  { q: 'Q5', label: 'Depend.', val: activeAxiom.q5Dependencies },
+                  { q: 'Q6', label: 'Conseq.', val: activeAxiom.q6Consequences },
+                  { q: 'Q7', label: 'Falsif.', val: activeAxiom.q7Falsification },
+                ].map(({ q, label, val }) => {
+                  const score = val ? parseFloat(val) : 0;
+                  const barColor = score >= 0.9 ? 'bg-emerald-500' : score >= 0.7 ? 'bg-amber-500' : 'bg-rose-500';
+                  return (
+                    <div key={q} className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-[#010409] border border-slate-800">
+                      <span className="text-[8px] font-black text-violet-400 uppercase">{q}</span>
+                      <span className="text-lg font-mono font-bold text-white">{val || '—'}</span>
+                      <div className="w-full h-1 rounded-full bg-slate-800 overflow-hidden">
+                        <div className={`h-full rounded-full ${barColor}`} style={{ width: `${score * 100}%` }} />
+                      </div>
+                      <span className="text-[7px] text-slate-600 uppercase tracking-widest">{label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Strongest / Weakest */}
+              {(activeAxiom.strongestQ || activeAxiom.weakestQ) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {activeAxiom.strongestQ && (
+                  <Card className="p-5 border-emerald-500/20 bg-emerald-500/5">
+                    <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-2">Strongest</p>
+                    <p className="text-xs text-slate-300 leading-relaxed">{activeAxiom.strongestQ}</p>
+                  </Card>
+                )}
+                {activeAxiom.weakestQ && (
+                  <Card className="p-5 border-rose-500/20 bg-rose-500/5">
+                    <p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-2">Weakest</p>
+                    <p className="text-xs text-slate-300 leading-relaxed">{activeAxiom.weakestQ}</p>
+                  </Card>
+                )}
+              </div>
+              )}
+
+              {/* Kill / Claim counts */}
+              <div className="flex gap-6">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase">Kill Conditions</span>
+                  <span className="font-mono text-sm text-rose-400">{activeAxiom.killCount || 0}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FileText className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase">Claims</span>
+                  <span className="font-mono text-sm text-blue-400">{activeAxiom.claimCount || 0}</span>
+                </div>
+              </div>
+            </section>
+            )}
+
+            {/* 7 Evidence Bridges — always visible */}
+            {(activeAxiom.physicsMapping || activeAxiom.theologyMapping) && (
+            <section className="space-y-6 pt-8 border-t border-amber-500/20">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                  <Globe className="w-4 h-4 text-amber-500" />
+                </div>
+                <span className="text-sm font-bold tracking-widest text-slate-300 uppercase">Evidence Bridges</span>
+                {activeAxiom.bridgeCount > 0 && (
+                  <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[8px]">{activeAxiom.bridgeCount}/7</Badge>
+                )}
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {[
+                  { label: "Physics", value: activeAxiom.physicsMapping, icon: "⚛️" },
+                  { label: "Theology", value: activeAxiom.theologyMapping, icon: "✝️" },
+                  { label: "Consciousness", value: activeAxiom.consciousnessMapping, icon: "🧠" },
+                  { label: "Quantum", value: activeAxiom.quantumMapping, icon: "🔮" },
+                  { label: "Scripture", value: activeAxiom.scriptureMapping, icon: "📖" },
+                  { label: "Evidence", value: activeAxiom.evidenceMapping, icon: "🔬" },
+                  { label: "Information", value: activeAxiom.informationMapping, icon: "💡" },
+                ].map(m => (
+                  <div key={m.label} className={`p-4 rounded-xl border transition-all ${
+                    m.value
+                      ? 'bg-[#010409] border-amber-500/20 hover:border-amber-500/40'
+                      : 'bg-[#010409]/50 border-slate-800/30 opacity-40'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm">{m.icon}</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-amber-500/80">{m.label}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">{m.value || 'Not mapped'}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+            )}
+
             {/* Enables & Dependencies */}
             <div className="grid grid-cols-2 gap-12 pt-12 border-t border-slate-800/40">
                <section className="space-y-6">
@@ -781,6 +934,12 @@ export default function Dashboard() {
                   { label: "CR Rating", value: activeAxiom.crRating, color: "text-rose-500" },
                   { label: "Bridge Count", value: String(activeAxiom.bridgeCount) },
                   { label: "Conflicts", value: String(activeAxiom.conflicts), color: activeAxiom.conflicts === 0 ? "text-emerald-400" : "text-rose-500" },
+                  ...(activeAxiom.avg7qScore ? [
+                    { label: "7Q Avg", value: activeAxiom.avg7qScore, color: "text-violet-400" },
+                    { label: "ISO Status", value: activeAxiom.isoStatus || "—", color: activeAxiom.isoStatus === "ISO-CONFIRMED" ? "text-emerald-400" : "text-amber-400" },
+                    { label: "Kill Count", value: String(activeAxiom.killCount || 0), color: "text-rose-400" },
+                    { label: "Claims", value: String(activeAxiom.claimCount || 0), color: "text-blue-400" },
+                  ] : []),
                 ].map((row) => (
                   <div key={row.label} className="flex justify-between py-2 border-b border-slate-800/40 last:border-0">
                     <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tighter">{row.label}</span>
