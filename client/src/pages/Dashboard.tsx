@@ -608,97 +608,117 @@ export default function Dashboard() {
               </AccordionItem>
               )}
 
-              {/* Judge & Jury */}
-              {activeAxiom.prosecutorDefense && (
-              <AccordionItem value="jury" className="border-slate-800/40 bg-slate-900/20 rounded-2xl overflow-hidden px-4">
+              {/* Judge & Jury — Objections + Defense + Verdict */}
+              {(objections.length > 0 || activeAxiom.prosecutorDefense) && (
+              <AccordionItem value="jury" className="border-rose-500/10 bg-gradient-to-br from-slate-900/40 to-rose-950/10 rounded-2xl overflow-hidden px-4 shadow-[0_0_40px_rgba(0,0,0,0.3)]">
                 <AccordionTrigger className="hover:no-underline py-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center border border-rose-500/20">
-                      <Scale className="w-4 h-4 text-rose-500" />
+                    <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.15)]">
+                      <Gavel className="w-5 h-5 text-rose-500" />
                     </div>
-                    <span className="text-sm font-bold tracking-widest text-slate-300 uppercase">Judge & Jury: The Argument</span>
+                    <div className="flex flex-col items-start">
+                      <span className="text-base font-black tracking-tight text-white uppercase">Judge & Jury</span>
+                      <span className="text-[9px] text-slate-500 tracking-widest uppercase">Every objection answered</span>
+                    </div>
+                    {objections.length > 0 && (
+                      <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/20 text-[9px] ml-2">
+                        {objections.length} OBJECTION{objections.length > 1 ? 'S' : ''}
+                      </Badge>
+                    )}
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="pb-8 px-12 space-y-8">
-                   <div className="grid grid-cols-12 gap-8">
-                      <div className="col-span-7 space-y-6">
-                         <div className="flex items-center gap-3">
-                            <Users className="w-4 h-4 text-blue-400" />
-                            <h4 className="text-sm font-black text-white uppercase tracking-tighter italic">The Prosecutor's Defense</h4>
-                         </div>
-                         <div className="bg-[#0d1117] p-8 rounded-2xl border border-slate-800 space-y-4 relative shadow-[inset_0_0_30px_rgba(0,0,0,0.3)]">
-                            <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-600 rounded-full" />
-                            <p className="text-sm text-slate-300 leading-relaxed font-light first-letter:text-5xl first-letter:font-black first-letter:mr-3 first-letter:float-left first-letter:text-blue-500" data-testid="text-prosecutor">
-                               {activeAxiom.prosecutorDefense}
-                            </p>
-                            {crossExams.length > 0 && (
-                              <div className="flex flex-wrap gap-3 pt-6 border-t border-slate-800">
-                                 {crossExams.map((ce: any, i: number) => (
-                                   <button key={i} className="text-[10px] font-black text-blue-400 hover:text-blue-300 tracking-widest uppercase transition-colors">Cross: {ce.target}</button>
-                                 ))}
-                              </div>
-                            )}
-                         </div>
-                         {crossExams.length > 0 && (
-                           <div className="space-y-3">
-                             {crossExams.map((ce: any, i: number) => (
-                               <div key={i} className="p-6 rounded-xl bg-[#010409] border border-slate-800">
-                                 <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3">{ce.target}</p>
-                                 <p className="text-xs text-slate-400 leading-relaxed italic">{ce.text}</p>
-                               </div>
-                             ))}
-                           </div>
-                         )}
-                      </div>
-                      <div className="col-span-5 space-y-6">
-                         <div className="flex items-center gap-3">
-                            <Gavel className="w-4 h-4 text-rose-500" />
-                            <h4 className="text-sm font-black text-white uppercase tracking-tighter italic">The Verdict</h4>
-                         </div>
-                         {activeAxiom.verdict && (
-                           <div className="bg-rose-500/5 p-8 rounded-2xl border border-rose-500/20 space-y-4 relative">
-                              <div className="absolute top-0 right-0 p-4 opacity-5">
-                                 <Gavel className="w-16 h-16 text-rose-500" />
-                              </div>
-                              <p className="text-sm text-slate-300 leading-relaxed italic font-medium relative z-10" data-testid="text-verdict">
-                                 "{activeAxiom.verdict}"
-                              </p>
-                              <div className="flex justify-end pt-4">
-                                 <Badge className="bg-rose-500 text-white font-black tracking-widest border-none px-4 py-1 shadow-[0_10px_20px_rgba(244,63,94,0.3)]">LOGICAL IMPERATIVE</Badge>
-                              </div>
-                           </div>
-                         )}
-                      </div>
-                   </div>
-                </AccordionContent>
-              </AccordionItem>
-              )}
+                <AccordionContent className="pb-10 px-4 sm:px-8 lg:px-12 space-y-10">
 
-              {/* Standard Objections */}
-              {objections.length > 0 && (
-              <AccordionItem value="objections" className="border-slate-800/40 bg-slate-900/20 rounded-2xl overflow-hidden px-4">
-                <AccordionTrigger className="hover:no-underline py-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
-                      <MessageSquare className="w-4 h-4 text-orange-400" />
-                    </div>
-                    <span className="text-sm font-bold tracking-widest text-slate-300 uppercase">Standard Objections ({objections.length})</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="pb-8 px-12 space-y-4">
-                  {objections.map((obj: any, i: number) => (
-                    <Card key={i} className="p-6 border-orange-500/20 bg-orange-500/5">
-                      <div className="flex gap-6">
-                        <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 font-bold shrink-0">{i + 1}</div>
-                        <div className="space-y-4">
-                          <h4 className="text-base font-bold text-slate-200">"{obj.objection}"</h4>
-                          <div className="pl-6 border-l-2 border-blue-500/30 py-2">
-                            <p className="text-sm text-slate-400 italic">{obj.response}</p>
+                  {/* Defeat Condition / Self-Refutation Trap */}
+                  {activeAxiom.defeatConditions && activeAxiom.defeatConditions.length > 0 && (
+                    <div className="p-6 rounded-2xl bg-amber-500/5 border border-amber-500/20 relative overflow-hidden">
+                      <div className="absolute -top-2 -right-2 w-20 h-20 bg-amber-500/5 rounded-full blur-2xl" />
+                      <div className="flex items-center gap-3 mb-4">
+                        <AlertTriangle className="w-5 h-5 text-amber-500" />
+                        <h3 className="text-sm font-black text-amber-400 uppercase tracking-wider">Self-Refutation Trap</h3>
+                      </div>
+                      <div className="space-y-2 relative z-10">
+                        {activeAxiom.defeatConditions.map((dc: string, i: number) => (
+                          <div key={i} className="flex items-start gap-3">
+                            <span className="text-amber-500 mt-0.5 shrink-0">-</span>
+                            <p className="text-sm text-slate-300 leading-relaxed">{dc}</p>
                           </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Standard Objections */}
+                  {objections.length > 0 && (
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-3">
+                        <MessageSquare className="w-5 h-5 text-orange-400" />
+                        <h3 className="text-base font-black text-white uppercase tracking-tight">Objections & Responses</h3>
+                      </div>
+                      <div className="space-y-4">
+                        {objections.map((obj: any, i: number) => (
+                          <div key={i} className="rounded-2xl border border-slate-800/60 bg-[#0d1117] overflow-hidden">
+                            {/* Objection */}
+                            <div className="p-6 border-b border-slate-800/40 flex gap-4 items-start">
+                              <div className="w-10 h-10 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 font-black text-sm shrink-0 shadow-[0_0_10px_rgba(249,115,22,0.1)]">
+                                {i + 1}
+                              </div>
+                              <div>
+                                <p className="text-[9px] font-bold text-orange-400/60 uppercase tracking-widest mb-1">Objection</p>
+                                <p className="text-base font-semibold text-slate-200 leading-relaxed italic">"{obj.objection}"</p>
+                              </div>
+                            </div>
+                            {/* Response */}
+                            <div className="p-6 bg-blue-500/[0.02]">
+                              <div className="flex items-start gap-4">
+                                <div className="w-1 h-full min-h-[20px] bg-blue-500 rounded-full shrink-0 mt-1" />
+                                <div>
+                                  <p className="text-[9px] font-bold text-blue-400/60 uppercase tracking-widest mb-2">Response</p>
+                                  <p className="text-sm text-slate-300 leading-relaxed">{obj.response}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* The Verdict */}
+                  {activeAxiom.verdict && (
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-rose-500/5 to-transparent rounded-2xl" />
+                      <div className="relative p-8 rounded-2xl border border-rose-500/20 space-y-5">
+                        <div className="absolute top-4 right-4 opacity-[0.03]">
+                          <Gavel className="w-24 h-24 text-rose-500" />
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Gavel className="w-5 h-5 text-rose-500" />
+                          <h3 className="text-lg font-black text-white uppercase tracking-tight">The Verdict</h3>
+                        </div>
+                        <p className="text-lg text-slate-200 leading-relaxed font-medium italic relative z-10" data-testid="text-verdict">
+                          "{activeAxiom.verdict}"
+                        </p>
+                        <div className="flex justify-end pt-2">
+                          <Badge className="bg-rose-500 text-white font-black tracking-widest border-none px-5 py-1.5 text-[10px] shadow-[0_10px_30px_rgba(244,63,94,0.3)]">
+                            LOGICAL IMPERATIVE
+                          </Badge>
                         </div>
                       </div>
-                    </Card>
-                  ))}
+                    </div>
+                  )}
+
+                  {/* Collapse Analysis */}
+                  {activeAxiom.collapseAnalysis && (
+                    <div className="p-6 rounded-2xl bg-[#010409] border border-slate-800/60">
+                      <div className="flex items-center gap-3 mb-4">
+                        <AlertTriangle className="w-4 h-4 text-rose-500" />
+                        <h3 className="text-sm font-black text-rose-400 uppercase tracking-wider">If This Fails</h3>
+                      </div>
+                      <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-line">{activeAxiom.collapseAnalysis}</p>
+                    </div>
+                  )}
+
                 </AccordionContent>
               </AccordionItem>
               )}
@@ -882,20 +902,6 @@ export default function Dashboard() {
                </section>
             </div>
 
-            {/* Collapse Analysis */}
-            {activeAxiom.collapseAnalysis && (
-            <section className="space-y-6 pt-12 border-t border-slate-800/40">
-               <div className="flex items-center gap-3">
-                  <AlertTriangle className="w-4 h-4 text-rose-500" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Collapse Analysis</span>
-               </div>
-               <Card className="p-8 border-rose-500/20 bg-rose-500/5">
-                  <p className="text-sm font-light italic text-slate-300 leading-relaxed" data-testid="text-collapse">
-                    {activeAxiom.collapseAnalysis}
-                  </p>
-               </Card>
-            </section>
-            )}
 
           </div>
           ) : (
